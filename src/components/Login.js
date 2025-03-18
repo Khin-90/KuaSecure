@@ -1,8 +1,7 @@
-// Login.js
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig"; // Correct import path
+import { auth } from "../firebaseConfig";
 
 export default function Login({ setAuth }) {
   const [email, setEmail] = useState("");
@@ -12,22 +11,33 @@ export default function Login({ setAuth }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(""); // Clear any previous errors
+    setError("");
+
+    // Basic email validation
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // Basic password validation
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
 
     try {
-      // Sign in with Firebase
       await signInWithEmailAndPassword(auth, email, password);
-      setAuth(true); // Update authentication state
-      navigate("/dashboard"); // Redirect to dashboard
+      setAuth(true);
+      navigate("/dashboard");
     } catch (error) {
-      setError(error.message); // Display error message
+      setError(error.message);
     }
   };
 
   return (
     <div className="container">
       <h2>Login to KuaSecure</h2>
-      {error && <p className="text-red-500">{error}</p>} {/* Display error message */}
+      {error && <p className="text-red-500">{error}</p>}
       <form onSubmit={handleLogin}>
         <input
           type="email"
@@ -45,6 +55,9 @@ export default function Login({ setAuth }) {
         />
         <button type="submit">Login</button>
       </form>
+      <p>
+        Don't have an account? <a href="/signup" className="text-blue-500">Sign up</a>
+      </p>
     </div>
   );
 }

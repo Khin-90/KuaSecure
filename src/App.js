@@ -1,24 +1,30 @@
-import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import { auth } from "./firebaseConfig"; // Import Firebase auth
+import AdminRoute from "./components/AdminRoute";
+import SecurityAlerts from "./components/SecurityAlerts";
+import VulnerabilityScanner from "./components/VulnerabilityScanner";
+import "./index.css";
+import { auth } from "./firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-import "./index.css"; 
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Listen for authentication state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user); // Set true if user is logged in
+      console.log("User auth state changed:", user);
+      setIsAuthenticated(!!user);
     });
-    return () => unsubscribe();
+    return () => unsubscribe(); // Cleanup on unmount
   }, []);
 
+  // Toggle dark mode
   const toggleTheme = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle("dark", !darkMode);
@@ -39,10 +45,21 @@ export default function App() {
 
         <div className="max-w-md mx-auto mt-10 p-6 rounded-lg shadow-lg bg-white dark:bg-gray-800">
           <Routes>
-            <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Login setAuth={setIsAuthenticated} />} />
             <Route path="/signup" element={<Signup setAuth={setIsAuthenticated} />} />
-            <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
+            <Route path="/security-alerts" element={<SecurityAlerts />} />
+            <Route path="/vulnerability-scanner" element={<VulnerabilityScanner />} />
+            
+            {/* Protect the Admin Dashboard */}
+            <Route path="/admin" element={
+              <AdminRoute>
+                <Dashboard />
+              </AdminRoute>
+            } />
+
+            {/* Redirect all other paths to /login */}
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </div>
       </Router>
